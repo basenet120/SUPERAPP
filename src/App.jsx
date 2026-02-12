@@ -11,6 +11,7 @@ import CalendarIntegration from './components/calendar/CalendarIntegration'
 import ReportingDashboard from './components/reports/ReportingDashboard'
 import MarketingTools from './components/marketing/MarketingTools'
 import NotificationSettings from './components/settings/NotificationSettings'
+import QuickBooksIntegration from './components/quickbooks/QuickBooksIntegration'
 import { MobileBottomNav, MobileMenuDrawer } from './components/MobileBottomNav'
 import { useAuth } from './contexts/AuthContext'
 import { LoginForm } from './components/auth/LoginForm'
@@ -99,6 +100,7 @@ function App() {
           {activeModule === 'invoicing' && <ReportingDashboard />}
           {activeModule === 'equipment' && <EquipmentManagement />}
           {activeModule === 'marketing' && <MarketingTools />}
+          {activeModule === 'quickbooks' && <QuickBooksIntegration />}
           {activeModule === 'settings/notifications' && <NotificationSettings />}
         </main>
       </div>
@@ -129,6 +131,7 @@ function getModuleTitle(module) {
     invoicing: 'Invoicing',
     equipment: 'Equipment',
     marketing: 'Marketing',
+    quickbooks: 'QuickBooks',
     'settings/notifications': 'Notification Settings'
   }
   return titles[module] || 'Base Super App'

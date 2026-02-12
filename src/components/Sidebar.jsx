@@ -9,7 +9,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Building2,
-  User
+  User,
+  BookOpen
 } from 'lucide-react'
 
 const navItems = [
@@ -19,6 +20,7 @@ const navItems = [
   { id: 'invoicing', label: 'Invoicing', icon: Receipt },
   { id: 'equipment', label: 'Equipment', icon: Package },
   { id: 'marketing', label: 'Marketing', icon: Megaphone },
+  { id: 'quickbooks', label: 'QuickBooks', icon: BookOpen },
 ]
 
 function Sidebar({ activeModule, setActiveModule, isOpen, setIsOpen }) {
