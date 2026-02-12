@@ -13,7 +13,6 @@ import {
   X,
   Loader2
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 
 const iconMap = {
   booking_confirmed: Calendar,
@@ -43,7 +42,6 @@ export function NotificationBell({ notifications: initialNotifications = [], unr
   const [unreadCount, setUnreadCount] = useState(initialUnread);
   const [isLoading, setIsLoading] = useState(false);
   const dropdownRef = useRef(null);
-  const navigate = useNavigate();
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -155,7 +153,7 @@ export function NotificationBell({ notifications: initialNotifications = [], unr
       markAsRead(notification.id);
     }
     if (notification.data?.url) {
-      navigate(notification.data.url);
+      window.location.href = notification.data.url;
     }
     setIsOpen(false);
   };
@@ -227,7 +225,10 @@ export function NotificationBell({ notifications: initialNotifications = [], unr
                   </button>
                 )}
                 <button
-                  onClick={() => navigate('/settings/notifications')}
+                  onClick={() => {
+                    window.dispatchEvent(new CustomEvent('navigate', { detail: 'settings/notifications' }));
+                    setIsOpen(false);
+                  }}
                   className="p-1.5 text-primary-500 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-colors"
                   title="Settings"
                 >
@@ -334,7 +335,6 @@ export function NotificationBell({ notifications: initialNotifications = [], unr
               <div className="px-4 py-3 border-t border-primary-200 bg-primary-50">
                 <button
                   onClick={() => {
-                    navigate('/notifications');
                     setIsOpen(false);
                   }}
                   className="w-full text-center text-sm text-brand-600 hover:text-brand-700 font-medium"
