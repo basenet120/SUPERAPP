@@ -1,0 +1,97 @@
+name: Security Audit
+
+on:
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+jobs:
+  security-audit:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18.x'
+    
+    # Backend Dependencies Audit
+    - name: Audit Backend Dependencies
+      working-directory: backend
+      run: |
+        npm audit --json > backend-audit.json || true
+        npm audit --audit-level=moderate
+      continue-on-error: true
+    
+    # Frontend Dependencies Audit
+    - name: Audit Frontend Dependencies
+      run: |
+        npm audit --json > frontend-audit.json || true
+        npm audit --audit-level=moderate
+      continue-on-error: true
+    
+    # Secret Scanning
+    - name: Secret Detection
+      uses: trufflesecurity/trufflehog@main
+      with:
+        path: ./
+        base: main
+        head: HEAD
+        extra_args: --debug --only-verified
+    
+    # CodeQL Analysis
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v2
+      with:
+        languages: javascript
+        queries: security-extended,security-and-quality
+    
+    - name: Autobuild
+      uses: github/codeql-action/autobuild@v2
+    
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v2
+    
+    # OWASP ZAP Baseline Scan
+    - name: ZAP Baseline Scan
+      uses: zaproxy/action-baseline@v0.9.0
+      with:
+        target: 'https://staging-api.baseapp.com'
+        rules_file_name: '.zap/rules.tsv'
+        cmd_options: '-a'
+      continue-on-error: true
+    
+    # Generate Security Report
+    - name: Generate Security Report
+      run: |
+        echo "# Security Audit Report" > SECURITY_REPORT.md
+        echo "Generated: $(date)" >> SECURITY_REPORT.md
+        echo "" >> SECURITY_REPORT.md
+        echo "## Dependency Vulnerabilities" >> SECURITY_REPORT.md
+        echo "See attached audit files for details." >> SECURITY_REPORT.md
+    
+    - name: Upload Security Report
+      uses: actions/upload-artifact@v3
+      with:
+        name: security-report
+        path: |
+          SECURITY_REPORT.md
+          backend-audit.json
+          frontend-audit.json
+    
+    # Create Issue for Critical Vulnerabilities
+    - name: Create Security Issue
+      if: failure()
+      uses: actions/github-script@v6
+      with:
+        script: |
+          github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: '🚨 Security Audit: Critical Vulnerabilities Found',
+            body: `Security audit completed with critical findings.\n\nRun: ${context.runId}\nCommit: ${context.sha}`,
+            labels: ['security', 'critical']
+          })
