@@ -6,6 +6,7 @@ import Header from './components/Header'
 import BookingWizard from './components/booking/BookingWizard'
 import CRM from './components/crm/CRM'
 import EquipmentManagement from './components/equipment/EquipmentManagement'
+import ClientPortal from './components/client/ClientPortal'
 import { useAuth } from './contexts/AuthContext'
 import { LoginForm } from './components/auth/LoginForm'
 import { Loader2 } from 'lucide-react'
@@ -14,6 +15,11 @@ function App() {
   const [activeModule, setActiveModule] = useState('dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const { isAuthenticated, isLoading } = useAuth()
+  
+  // Check if this is a client portal route (public access)
+  const isClientPortal = window.location.pathname.startsWith('/client') || 
+                         window.location.search.includes('quote=') ||
+                         window.location.pathname.startsWith('/booking');
 
   // Handle navigation events
   useEffect(() => {
@@ -37,6 +43,11 @@ function App() {
     window.addEventListener('resize', checkMobile)
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
+
+  // Show client portal for public routes (no auth required)
+  if (isClientPortal) {
+    return <ClientPortal />
+  }
 
   if (isLoading) {
     return (
