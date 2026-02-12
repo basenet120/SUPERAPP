@@ -7,6 +7,7 @@ import BookingWizard from './components/booking/BookingWizard'
 import CRM from './components/crm/CRM'
 import EquipmentManagement from './components/equipment/EquipmentManagement'
 import ClientPortal from './components/client/ClientPortal'
+import CalendarIntegration from './components/calendar/CalendarIntegration'
 import { useAuth } from './contexts/AuthContext'
 import { LoginForm } from './components/auth/LoginForm'
 import { Loader2 } from 'lucide-react'
@@ -89,7 +90,7 @@ function App() {
         <main className="flex-1 overflow-auto p-6 page-transition">
           {activeModule === 'dashboard' && <Dashboard />}
           {activeModule === 'crm' && <CRM />}
-          {activeModule === 'bookings' && <BookingWizard />}
+          {activeModule === 'bookings' && <CalendarIntegration />
           {activeModule === 'invoicing' && (
             <div className="flex flex-col items-center justify-center py-20 text-primary-500">
               <div className="w-20 h-20 bg-primary-100 rounded-2xl flex items-center justify-center mb-6">

@@ -336,3 +336,80 @@
     font-variant-numeric: tabular-nums;
   }
 }
+
+/* React Big Calendar Custom Styles */
+.rbc-calendar {
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.rbc-header {
+  @apply py-3 text-sm font-semibold text-primary-600 bg-primary-50 border-b border-primary-200;
+}
+
+.rbc-time-header-content {
+  @apply border-l border-primary-200;
+}
+
+.rbc-time-content {
+  @apply border-t border-primary-200;
+}
+
+.rbc-time-slot {
+  @apply text-xs text-primary-400;
+}
+
+.rbc-event {
+  @apply rounded-md border-0 shadow-sm;
+}
+
+.rbc-event-content {
+  @apply text-sm font-medium;
+}
+
+.rbc-today {
+  @apply bg-brand-50;
+}
+
+.rbc-selected-cell {
+  @apply bg-brand-100;
+}
+
+.rbc-current-time-indicator {
+  @apply bg-brand-500 h-0.5;
+}
+
+.rbc-show-more {
+  @apply text-xs text-brand-600 font-medium hover:text-brand-700;
+}
+
+.rbc-month-view {
+  @apply border border-primary-200 rounded-lg;
+}
+
+.rbc-month-row {
+  @api border-b border-primary-100;
+}
+
+.rbc-day-bg {
+  @apply border-r border-primary-100;
+}
+
+.rbc-date-cell {
+  @apply text-sm p-2 text-primary-700;
+}
+
+.rbc-off-range-bg {
+  @apply bg-primary-50;
+}
+
+.rbc-off-range {
+  @apply text-primary-300;
+}
+
+.rbc-button-link {
+  @apply text-primary-700 hover:text-brand-600;
+}
+
+.rbc-active {
+  @apply bg-brand-100 text-brand-700;
+}
