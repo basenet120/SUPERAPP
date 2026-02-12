@@ -28,6 +28,7 @@ const csvImportRoutes = require('./routes/csvImport');
 const advancedBookingRoutes = require('./routes/advancedBooking');
 const clientManagementRoutes = require('./routes/clientManagement');
 const inventoryAlertRoutes = require('./routes/inventoryAlerts');
+const teamManagementRoutes = require('./routes/teamManagement');
 
 // Initialize Express app
 const app = express();
@@ -139,6 +140,7 @@ app.use('/api/import', csvImportRoutes);
 app.use('/api/bookings/advanced', advancedBookingRoutes);
 app.use('/api/clients', clientManagementRoutes);
 app.use('/api/inventory/alerts', inventoryAlertRoutes);
+app.use('/api/team', teamManagementRoutes);
 
 // TODO: Add more routes
 // app.use('/api/clients', require('./routes/clients'));

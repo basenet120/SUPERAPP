@@ -1,153 +1,186 @@
 exports.up = async function(knex) {
-  // Employee Profiles (extends users)
+  // Employee Profiles
   await knex.schema.createTable('employee_profiles', table => {
-    table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
-    table.uuid('user_id').references('id').inTable('users').onDelete('CASCADE').notNullable().unique();
-    table.string('employee_number').unique();
-    table.enum('employment_type', ['full_time', 'part_time', 'contract', 'intern']).defaultTo('full_time');
-    table.enum('department', [
-      'operations',
-      'sales',
-      'technical',
-      'administrative',
-      'management',
-      'logistics',
-      'customer_service'
-    ]).defaultTo('operations');
-    table.string('job_title');
+    table.uuid('id').primary().defaultTo(knex.raw('uuid_generate_v4()'));
+    table.uuid('user_id').references('id').inTable('users').onDelete('CASCADE').unique();
+    
+    // Employment details
+    table.string('employee_id').unique();
     table.date('hire_date');
     table.date('termination_date');
-    table.enum('employment_status', ['active', 'on_leave', 'terminated', 'suspended']).defaultTo('active');
-    table.decimal('hourly_rate', 10, 2);
-    table.decimal('salary', 12, 2);
+    table.enum('employment_type', ['full_time', 'part_time', 'contractor', 'intern']).defaultTo('full_time');
+    table.enum('status', ['active', 'inactive', 'on_leave', 'terminated']).defaultTo('active');
+    
+    // Department and role
+    table.string('department');
+    table.string('job_title');
+    table.uuid('manager_id').references('id').inTable('users').onDelete('SET NULL');
+    
+    // Skills and certifications
+    table.jsonb('skills').defaultTo('[]');
+    table.jsonb('certifications').defaultTo('[]');
+    table.jsonb('equipment_specializations').defaultTo('[]'); // Equipment categories they can handle
+    
+    // Contact and personal
     table.string('emergency_contact_name');
     table.string('emergency_contact_phone');
-    table.text('skills'); // JSON array
-    table.text('certifications'); // JSON array
-    table.text('bio');
+    table.text('address');
     table.date('birth_date');
-    table.jsonb('schedule_preferences').defaultTo('{}'); // { preferred_shifts, days_off, max_hours }
-    table.boolean('can_drive').defaultTo(false);
-    table.string('drivers_license_number');
-    table.date('drivers_license_expiry');
+    
+    // Payroll (basic tracking)
+    table.decimal('hourly_rate', 10, 2);
+    table.decimal('salary', 12, 2);
+    table.enum('pay_schedule', ['hourly', 'weekly', 'biweekly', 'monthly']).defaultTo('hourly');
+    
+    // Preferences
+    table.jsonb('availability_schedule').defaultTo('{}'); // Weekly availability
+    table.integer('max_hours_per_week');
+    table.text('notes');
+    
     table.timestamps(true, true);
-    table.index(['department', 'employment_status']);
-    table.index(['job_title']);
+    table.index(['user_id', 'status']);
+    table.index(['department']);
+    table.index(['manager_id']);
   });
 
-  // Team Assignments (bookings/projects to employees)
-  await knex.schema.createTable('team_assignments', table => {
-    table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
+  // Employee Skills Reference Table
+  await knex.schema.createTable('skill_categories', table => {
+    table.uuid('id').primary().defaultTo(knex.raw('uuid_generate_v4()'));
+    table.string('name').notNullable();
+    table.string('slug').unique().notNullable();
+    table.text('description');
+    table.enum('type', ['technical', 'soft', 'certification', 'equipment']).defaultTo('technical');
+    table.timestamps(true, true);
+  });
+
+  // Employee-Time Tracking (prep for payroll)
+  await knex.schema.createTable('time_entries', table => {
+    table.uuid('id').primary().defaultTo(knex.raw('uuid_generate_v4()'));
     table.uuid('employee_id').references('id').inTable('employee_profiles').onDelete('CASCADE').notNullable();
-    table.enum('assignable_type', ['booking', 'project', 'maintenance_task', 'delivery']).notNullable();
-    table.uuid('assignable_id').notNullable();
-    table.enum('role', [
-      'lead',
-      'assistant',
-      'driver',
-      'technician',
-      'coordinator',
-      'support',
-      'observer'
-    ]).defaultTo('support');
+    
+    // Time tracking
+    table.timestamp('clock_in').notNullable();
+    table.timestamp('clock_out');
+    table.interval('duration');
+    
+    // Categorization
+    table.enum('type', ['regular', 'overtime', 'break', 'training', 'meeting', 'travel']).defaultTo('regular');
+    table.uuid('booking_id').references('id').inTable('bookings').onDelete('SET NULL');
+    table.uuid('project_id').references('id').inTable('projects').onDelete('SET NULL');
+    
+    // Location and verification
+    table.jsonb('clock_in_location');
+    table.jsonb('clock_out_location');
+    table.string('ip_address');
+    table.enum('verification_method', ['manual', 'gps', 'biometric', 'qr_code']).defaultTo('manual');
+    
+    // Approval
+    table.enum('status', ['pending', 'approved', 'rejected', 'disputed']).defaultTo('pending');
+    table.uuid('approved_by').references('id').inTable('users').onDelete('SET NULL');
+    table.timestamp('approved_at');
+    table.text('notes');
+    table.text('rejection_reason');
+    
+    table.timestamps(true, true);
+    table.index(['employee_id', 'clock_in']);
+    table.index(['booking_id']);
+    table.index(['status']);
+  });
+
+  // Employee Assignments to Bookings
+  await knex.schema.createTable('booking_assignments', table => {
+    table.uuid('id').primary().defaultTo(knex.raw('uuid_generate_v4()'));
+    table.uuid('booking_id').references('id').inTable('bookings').onDelete('CASCADE').notNullable();
+    table.uuid('employee_id').references('id').inTable('employee_profiles').onDelete('CASCADE').notNullable();
+    
+    // Assignment details
+    table.enum('role', ['prep_tech', 'delivery_driver', 'on_set_tech', 'supervisor', 'manager']).notNullable();
     table.text('responsibilities');
     table.timestamp('scheduled_start');
     table.timestamp('scheduled_end');
+    
+    // Status
+    table.enum('status', ['scheduled', 'confirmed', 'in_progress', 'completed', 'cancelled']).defaultTo('scheduled');
+    table.uuid('assigned_by').references('id').inTable('users').onDelete('SET NULL');
+    
+    // Check-in/out
     table.timestamp('actual_start');
     table.timestamp('actual_end');
-    table.enum('status', ['scheduled', 'in_progress', 'completed', 'cancelled', 'no_show']).defaultTo('scheduled');
-    table.text('notes');
-    table.uuid('assigned_by').references('id').inTable('users');
+    table.text('check_in_notes');
+    table.text('check_out_notes');
+    
     table.timestamps(true, true);
-    table.index(['employee_id', 'status']);
-    table.index(['assignable_type', 'assignable_id']);
-    table.index(['scheduled_start', 'scheduled_end']);
+    table.unique(['booking_id', 'employee_id', 'role']);
+    table.index(['employee_id', 'scheduled_start']);
+    table.index(['booking_id']);
   });
 
-  // Employee Availability/Time Off
+  // Employee Availability Calendar
   await knex.schema.createTable('employee_availability', table => {
-    table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
+    table.uuid('id').primary().defaultTo(knex.raw('uuid_generate_v4()'));
     table.uuid('employee_id').references('id').inTable('employee_profiles').onDelete('CASCADE').notNullable();
+    
+    // Date/time range
     table.date('date').notNullable();
-    table.enum('status', ['available', 'unavailable', 'time_off', 'partial']).defaultTo('available');
-    table.time('available_from');
-    table.time('available_until');
-    table.enum('time_off_type', ['vacation', 'sick', 'personal', 'training', 'other']);
-    table.text('notes');
-    table.uuid('approved_by').references('id').inTable('users');
-    table.timestamp('approved_at');
+    table.time('start_time').notNullable();
+    table.time('end_time').notNullable();
+    
+    // Status
+    table.enum('status', ['available', 'unavailable', 'tentative', 'booked']).defaultTo('available');
+    table.enum('type', ['recurring', 'one_time']).defaultTo('one_time');
+    
+    // Optional reference
+    table.string('reason'); // vacation, meeting, etc
+    table.uuid('booking_id').references('id').inTable('bookings').onDelete('SET NULL');
+    
     table.timestamps(true, true);
-    table.unique(['employee_id', 'date']);
+    table.index(['employee_id', 'date']);
+    table.index(['date', 'status']);
   });
 
-  // Employee Skills/Certifications Master List
-  await knex.schema.createTable('skill_catalog', table => {
-    table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
-    table.string('name').notNullable().unique();
-    table.text('description');
-    table.enum('category', ['technical', 'creative', 'logistics', 'administrative', 'safety']);
-    table.boolean('is_certification').defaultTo(false);
-    table.boolean('requires_renewal').defaultTo(false);
-    table.integer('renewal_period_months');
-    table.timestamps(true, true);
-  });
-
-  // Employee Skills (junction table)
-  await knex.schema.createTable('employee_skills', table => {
-    table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
+  // Employee Documents (certifications, contracts, etc)
+  await knex.schema.createTable('employee_documents', table => {
+    table.uuid('id').primary().defaultTo(knex.raw('uuid_generate_v4()'));
     table.uuid('employee_id').references('id').inTable('employee_profiles').onDelete('CASCADE').notNullable();
-    table.uuid('skill_id').references('id').inTable('skill_catalog').onDelete('CASCADE').notNullable();
-    table.enum('proficiency', ['beginner', 'intermediate', 'advanced', 'expert']).defaultTo('beginner');
-    table.date('acquired_date');
-    table.date('expiry_date'); // For certifications
-    table.string('certificate_number');
-    table.text('certificate_url');
-    table.uuid('verified_by').references('id').inTable('users');
+    
+    table.string('name').notNullable();
+    table.enum('type', ['contract', 'certification', 'id_document', 'background_check', 'training_record', 'other']).notNullable();
+    table.string('file_url').notNullable();
+    table.string('file_name');
+    table.string('mime_type');
+    table.integer('file_size');
+    
+    // For certifications
+    table.date('issue_date');
+    table.date('expiry_date');
+    table.string('issuing_organization');
+    
+    table.uuid('uploaded_by').references('id').inTable('users').onDelete('SET NULL');
     table.timestamps(true, true);
-    table.unique(['employee_id', 'skill_id']);
+    table.index(['employee_id', 'type']);
+    table.index(['expiry_date']);
   });
 
-  // Team Performance Metrics
-  await knex.schema.createTable('employee_performance', table => {
-    table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
-    table.uuid('employee_id').references('id').inTable('employee_profiles').onDelete('CASCADE').notNullable();
-    table.enum('period', ['weekly', 'monthly', 'quarterly', 'yearly']).notNullable();
-    table.date('period_start').notNullable();
-    table.date('period_end').notNullable();
-    table.integer('bookings_handled').defaultTo(0);
-    table.integer('projects_completed').defaultTo(0);
-    table.decimal('customer_rating', 3, 2); // 1.00 - 5.00
-    table.integer('incidents_reported').defaultTo(0);
-    table.integer('incidents_resolved').defaultTo(0);
-    table.integer('hours_worked').defaultTo(0);
-    table.decimal('revenue_contributed', 12, 2).defaultTo(0);
-    table.text('notes');
-    table.uuid('reviewed_by').references('id').inTable('users');
-    table.timestamp('reviewed_at');
-    table.timestamps(true, true);
-    table.unique(['employee_id', 'period', 'period_start']);
-  });
-
-  // Insert default skills
-  await knex('skill_catalog').insert([
-    { name: 'Camera Operation', category: 'technical', description: 'Professional camera operation' },
-    { name: 'Lighting Setup', category: 'technical', description: 'Studio and location lighting' },
-    { name: 'Audio Recording', category: 'technical', description: 'Audio capture and monitoring' },
-    { name: 'Drone Piloting', category: 'technical', is_certification: true, requires_renewal: true, renewal_period_months: 24 },
-    { name: 'Forklift Operation', category: 'logistics', is_certification: true, requires_renewal: true, renewal_period_months: 36 },
-    { name: 'CDL License', category: 'logistics', is_certification: true, requires_renewal: true, renewal_period_months: 60 },
-    { name: 'First Aid/CPR', category: 'safety', is_certification: true, requires_renewal: true, renewal_period_months: 24 },
-    { name: 'Video Editing', category: 'creative', description: 'Post-production editing' },
-    { name: 'Color Grading', category: 'creative', description: 'Professional color correction' },
-    { name: 'Equipment Maintenance', category: 'technical', description: 'Gear cleaning and basic repairs' }
+  // Insert default skill categories
+  await knex('skill_categories').insert([
+    { name: 'Camera Operation', slug: 'camera-operation', type: 'technical' },
+    { name: 'Lighting Setup', slug: 'lighting-setup', type: 'technical' },
+    { name: 'Grip Work', slug: 'grip-work', type: 'technical' },
+    { name: 'Audio Engineering', slug: 'audio-engineering', type: 'technical' },
+    { name: 'Drone Piloting', slug: 'drone-piloting', type: 'certification' },
+    { name: 'Forklift Operation', slug: 'forklift-operation', type: 'certification' },
+    { name: 'CDL License', slug: 'cdl-license', type: 'certification' },
+    { name: 'First Aid', slug: 'first-aid', type: 'certification' },
+    { name: 'Project Management', slug: 'project-management', type: 'soft' },
+    { name: 'Client Relations', slug: 'client-relations', type: 'soft' }
   ]);
 };
 
 exports.down = async function(knex) {
-  await knex.schema.dropTableIfExists('employee_performance');
-  await knex.schema.dropTableIfExists('employee_skills');
-  await knex.schema.dropTableIfExists('skill_catalog');
+  await knex.schema.dropTableIfExists('employee_documents');
   await knex.schema.dropTableIfExists('employee_availability');
-  await knex.schema.dropTableIfExists('team_assignments');
+  await knex.schema.dropTableIfExists('booking_assignments');
+  await knex.schema.dropTableIfExists('time_entries');
+  await knex.schema.dropTableIfExists('skill_categories');
   await knex.schema.dropTableIfExists('employee_profiles');
 };
