@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { 
   Package, Grid, Calendar, Search, Plus, Minus, X, 
   Check, ChevronRight, Info, Star, Clock, Camera,
@@ -37,6 +37,8 @@ export default function EquipmentManagement() {
   const [selectedPackage, setSelectedPackage] = useState(null);
   const [cart, setCart] = useState([]);
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 24; // Show 24 items per page
 
   // Filter equipment
   const filteredEquipment = useMemo(() => {
@@ -47,6 +49,18 @@ export default function EquipmentManagement() {
       return matchesSearch && matchesCategory;
     });
   }, [searchQuery, selectedCategory]);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedCategory]);
+
+  // Pagination
+  const totalPages = Math.ceil(filteredEquipment.length / itemsPerPage);
+  const paginatedEquipment = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filteredEquipment.slice(start, start + itemsPerPage);
+  }, [filteredEquipment, currentPage]);
 
   const addToCart = (equipmentId, quantity = 1) => {
     const existingItem = cart.find(item => item.id === equipmentId);
@@ -124,7 +138,7 @@ export default function EquipmentManagement() {
 
       {/* Equipment Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-        {filteredEquipment.map(equipment => {
+        {paginatedEquipment.map(equipment => {
           const dayRate = getDayRate(equipment);
           const inCart = cart.find(item => item.id === equipment.id);
           const Icon = CATEGORY_ICONS[equipment.category] || Box;
@@ -195,6 +209,29 @@ export default function EquipmentManagement() {
           );
         })}
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 mt-8">
+          <button
+            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+            className="px-4 py-2 rounded-lg border border-primary-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary-50"
+          >
+            Previous
+          </button>
+          <span className="text-sm text-primary-600">
+            Page {currentPage} of {totalPages} ({filteredEquipment.length} items)
+          </span>
+          <button
+            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+            className="px-4 py-2 rounded-lg border border-primary-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary-50"
+          >
+            Next
+          </button>
+        </div>
+      )}
 
       {filteredEquipment.length === 0 && (
         <div className="text-center py-20">
