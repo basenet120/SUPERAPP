@@ -208,4 +208,5 @@ export const activityAPI = {
   markAllAsRead: () => api.post('/activity/read-all'),
 };
 
+export { api };
 export default api;
