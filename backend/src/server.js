@@ -25,6 +25,7 @@ const dealsRoutes = require('./routes/deals');
 const activityRoutes = require('./routes/activity');
 const notificationRoutes = require('./routes/notifications');
 const csvImportRoutes = require('./routes/csvImport');
+const advancedBookingRoutes = require('./routes/advancedBooking');
 
 // Initialize Express app
 const app = express();
@@ -133,6 +134,7 @@ app.use('/api/deals', dealsRoutes);
 app.use('/api/activity', activityRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/import', csvImportRoutes);
+app.use('/api/bookings/advanced', advancedBookingRoutes);
 
 // TODO: Add more routes
 // app.use('/api/clients', require('./routes/clients'));
