@@ -9,6 +9,7 @@ import EquipmentManagement from './components/equipment/EquipmentManagement'
 import ClientPortal from './components/client/ClientPortal'
 import CalendarIntegration from './components/calendar/CalendarIntegration'
 import ReportingDashboard from './components/reports/ReportingDashboard'
+import MarketingTools from './components/marketing/MarketingTools'
 import { useAuth } from './contexts/AuthContext'
 import { LoginForm } from './components/auth/LoginForm'
 import { Loader2 } from 'lucide-react'
@@ -94,17 +95,7 @@ function App() {
           {activeModule === 'bookings' && <CalendarIntegration />
           {activeModule === 'invoicing' && <ReportingDashboard />}
           {activeModule === 'equipment' && <EquipmentManagement />}
-          {activeModule === 'marketing' && (
-            <div className="flex flex-col items-center justify-center py-20 text-primary-500">
-              <div className="w-20 h-20 bg-primary-100 rounded-2xl flex items-center justify-center mb-6">
-                <svg className="w-10 h-10 text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
-                </svg>
-              </div>
-              <h2 className="text-xl font-semibold text-primary-900 mb-2">Marketing Automation</h2>
-              <p className="text-primary-500 max-w-md text-center">Coming in Phase 6. Email campaigns and workflows.</p>
-            </div>
-          )}
+          {activeModule === 'marketing' && <MarketingTools />}
         </main>
       </div>
     </div>
