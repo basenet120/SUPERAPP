@@ -29,6 +29,11 @@ const advancedBookingRoutes = require('./routes/advancedBooking');
 const clientManagementRoutes = require('./routes/clientManagement');
 const inventoryAlertRoutes = require('./routes/inventoryAlerts');
 const teamManagementRoutes = require('./routes/teamManagement');
+const projectRoutes = require('./routes/projects');
+const documentRoutes = require('./routes/documents');
+const searchRoutes = require('./routes/search');
+const locationRoutes = require('./routes/locations');
+const brandingRoutes = require('./routes/branding');
 
 // Initialize Express app
 const app = express();
@@ -141,15 +146,11 @@ app.use('/api/bookings/advanced', advancedBookingRoutes);
 app.use('/api/clients', clientManagementRoutes);
 app.use('/api/inventory/alerts', inventoryAlertRoutes);
 app.use('/api/team', teamManagementRoutes);
-
-// TODO: Add more routes
-// app.use('/api/clients', require('./routes/clients'));
-// app.use('/api/projects', require('./routes/projects'));
-// app.use('/api/emails', require('./routes/emails'));
-// app.use('/api/documents', require('./routes/documents'));
-// app.use('/api/time', require('./routes/timeTracking'));
-// app.use('/api/expenses', require('./routes/expenses'));
-// app.use('/api/reports', require('./routes/reports'));
+app.use('/api/projects', projectRoutes);
+app.use('/api/documents', documentRoutes);
+app.use('/api/search', searchRoutes);
+app.use('/api/locations', locationRoutes);
+app.use('/api/branding', brandingRoutes);
 
 // Socket.io connection handling
 io.on('connection', (socket) => {
