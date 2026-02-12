@@ -1,21 +1,29 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense, lazy } from 'react'
 import './index.css'
-import Dashboard from './components/Dashboard'
 import Sidebar from './components/Sidebar'
 import Header from './components/Header'
-import BookingWizard from './components/booking/BookingWizard'
-import CRM from './components/crm/CRM'
-import EquipmentManagement from './components/equipment/EquipmentManagement'
-import ClientPortal from './components/client/ClientPortal'
-import CalendarIntegration from './components/calendar/CalendarIntegration'
-import ReportingDashboard from './components/reports/ReportingDashboard'
-import MarketingTools from './components/marketing/MarketingTools'
-import NotificationSettings from './components/settings/NotificationSettings'
-import QuickBooksIntegration from './components/quickbooks/QuickBooksIntegration'
 import { MobileBottomNav, MobileMenuDrawer } from './components/MobileBottomNav'
 import { useAuth } from './contexts/AuthContext'
 import { LoginForm } from './components/auth/LoginForm'
 import { Loader2 } from 'lucide-react'
+
+// Lazy load all heavy components
+const Dashboard = lazy(() => import('./components/Dashboard'))
+const CRM = lazy(() => import('./components/crm/CRM'))
+const CalendarIntegration = lazy(() => import('./components/calendar/CalendarIntegration'))
+const ReportingDashboard = lazy(() => import('./components/reports/ReportingDashboard'))
+const EquipmentManagement = lazy(() => import('./components/equipment/EquipmentManagement'))
+const MarketingTools = lazy(() => import('./components/marketing/MarketingTools'))
+const NotificationSettings = lazy(() => import('./components/settings/NotificationSettings'))
+const QuickBooksIntegration = lazy(() => import('./components/quickbooks/QuickBooksIntegration'))
+const ClientPortal = lazy(() => import('./components/client/ClientPortal'))
+
+// Loading fallback
+const PageLoader = () => (
+  <div className="flex items-center justify-center h-64">
+    <Loader2 className="w-8 h-8 animate-spin text-brand-600" />
+  </div>
+)
 
 function App() {
   const [activeModule, setActiveModule] = useState('dashboard')
@@ -53,7 +61,11 @@ function App() {
 
   // Show client portal for public routes (no auth required)
   if (isClientPortal) {
-    return <ClientPortal />
+    return (
+      <Suspense fallback={<PageLoader />}>
+        <ClientPortal />
+      </Suspense>
+    )
   }
 
   if (isLoading) {
@@ -94,14 +106,16 @@ function App() {
         />
         
         <main className="flex-1 overflow-auto p-4 sm:p-6 page-transition">
-          {activeModule === 'dashboard' && <Dashboard />}
-          {activeModule === 'crm' && <CRM />}
-          {activeModule === 'bookings' && <CalendarIntegration />}
-          {activeModule === 'invoicing' && <ReportingDashboard />}
-          {activeModule === 'equipment' && <EquipmentManagement />}
-          {activeModule === 'marketing' && <MarketingTools />}
-          {activeModule === 'quickbooks' && <QuickBooksIntegration />}
-          {activeModule === 'settings/notifications' && <NotificationSettings />}
+          <Suspense fallback={<PageLoader />}>
+            {activeModule === 'dashboard' && <Dashboard />}
+            {activeModule === 'crm' && <CRM />}
+            {activeModule === 'bookings' && <CalendarIntegration />}
+            {activeModule === 'invoicing' && <ReportingDashboard />}
+            {activeModule === 'equipment' && <EquipmentManagement />}
+            {activeModule === 'marketing' && <MarketingTools />}
+            {activeModule === 'quickbooks' && <QuickBooksIntegration />}
+            {activeModule === 'settings/notifications' && <NotificationSettings />}
+          </Suspense>
         </main>
       </div>
 
