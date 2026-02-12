@@ -3,8 +3,10 @@ import {
   Package, Grid, Calendar, Search, Plus, Minus, X, 
   Check, ChevronRight, Info, Star, Clock, Camera,
   Mic, Lightbulb, Zap, Film, Box, Wrench, ArrowLeft,
-  ChevronLeft, ChevronRight as ChevronRightIcon
+  ChevronLeft, ChevronRight as ChevronRightIcon, Upload, FileText
 } from 'lucide-react';
+import CSVImportWizard from './CSVImportWizard';
+import ImportJobsList from './ImportJobsList';
 import { EQUIPMENT_DATA, EQUIPMENT_CATEGORIES, getDayRate } from '../booking/equipmentData';
 import { EQUIPMENT_PACKAGES, EQUIPMENT_SPECS, getDefaultSpecs, generateAvailabilityData } from './equipmentPackages';
 import { Badge } from '../ui/Badge';
@@ -28,7 +30,7 @@ const CATEGORY_ICONS = {
 };
 
 export default function EquipmentManagement() {
-  const [activeView, setActiveView] = useState('browse'); // browse, packages, calendar, detail
+  const [activeView, setActiveView] = useState('browse'); // browse, packages, calendar, detail, import, import-jobs
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedEquipment, setSelectedEquipment] = useState(null);
@@ -695,6 +697,30 @@ export default function EquipmentManagement() {
             <Calendar className="w-4 h-4 inline-block mr-2" strokeWidth={1.5} />
             Availability
           </button>
+          <button
+            onClick={() => setActiveView('import')}
+            className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+              activeView === 'import' || activeView === 'import-jobs'
+                ? 'border-brand-600 text-brand-600'
+                : 'border-transparent text-primary-500 hover:text-primary-700'
+            }`}
+          >
+            <Upload className="w-4 h-4 inline-block mr-2" strokeWidth={1.5} />
+            Import
+          </button>
+          {(activeView === 'import' || activeView === 'import-jobs') && (
+            <button
+              onClick={() => setActiveView('import-jobs')}
+              className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ml-auto ${
+                activeView === 'import-jobs'
+                  ? 'border-brand-600 text-brand-600'
+                  : 'border-transparent text-primary-500 hover:text-primary-700'
+              }`}
+            >
+              <FileText className="w-4 h-4 inline-block mr-2" strokeWidth={1.5} />
+              Import History
+            </button>
+          )}
         </div>
       )}
 
@@ -704,6 +730,15 @@ export default function EquipmentManagement() {
           {activeView === 'browse' && renderBrowseView()}
           {activeView === 'packages' && renderPackagesView()}
           {activeView === 'calendar' && renderCalendarView()}
+          {activeView === 'import' && (
+            <CSVImportWizard 
+              onComplete={() => setActiveView('browse')} 
+              onCancel={() => setActiveView('browse')}
+            />
+          )}
+          {activeView === 'import-jobs' && (
+            <ImportJobsList onBack={() => setActiveView('browse')} />
+          )}
         </>
       )}
 

@@ -24,6 +24,7 @@ const companiesRoutes = require('./routes/companies');
 const dealsRoutes = require('./routes/deals');
 const activityRoutes = require('./routes/activity');
 const notificationRoutes = require('./routes/notifications');
+const csvImportRoutes = require('./routes/csvImport');
 
 // Initialize Express app
 const app = express();
@@ -131,6 +132,7 @@ app.use('/api/companies', companiesRoutes);
 app.use('/api/deals', dealsRoutes);
 app.use('/api/activity', activityRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/import', csvImportRoutes);
 
 // TODO: Add more routes
 // app.use('/api/clients', require('./routes/clients'));
