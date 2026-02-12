@@ -8,6 +8,7 @@ import CRM from './components/crm/CRM'
 import EquipmentManagement from './components/equipment/EquipmentManagement'
 import ClientPortal from './components/client/ClientPortal'
 import CalendarIntegration from './components/calendar/CalendarIntegration'
+import ReportingDashboard from './components/reports/ReportingDashboard'
 import { useAuth } from './contexts/AuthContext'
 import { LoginForm } from './components/auth/LoginForm'
 import { Loader2 } from 'lucide-react'
@@ -91,17 +92,7 @@ function App() {
           {activeModule === 'dashboard' && <Dashboard />}
           {activeModule === 'crm' && <CRM />}
           {activeModule === 'bookings' && <CalendarIntegration />
-          {activeModule === 'invoicing' && (
-            <div className="flex flex-col items-center justify-center py-20 text-primary-500">
-              <div className="w-20 h-20 bg-primary-100 rounded-2xl flex items-center justify-center mb-6">
-                <svg className="w-10 h-10 text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" />
-                </svg>
-              </div>
-              <h2 className="text-xl font-semibold text-primary-900 mb-2">Invoicing</h2>
-              <p className="text-primary-500 max-w-md text-center">Coming in Phase 4. Quotes, invoices, and QuickBooks sync.</p>
-            </div>
-          )}
+          {activeModule === 'invoicing' && <ReportingDashboard />}
           {activeModule === 'equipment' && <EquipmentManagement />}
           {activeModule === 'marketing' && (
             <div className="flex flex-col items-center justify-center py-20 text-primary-500">
