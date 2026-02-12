@@ -104,11 +104,11 @@ function Sidebar({ activeModule, setActiveModule, isOpen, setIsOpen }) {
           <div className={`mt-2 pt-2 border-t border-primary-100 ${!isOpen && 'border-transparent'}`}>
             <button className={`w-full flex items-center gap-3 p-2 rounded-lg hover:bg-primary-50 transition-colors ${!isOpen && 'justify-center p-1'}`}>
               <div className="w-8 h-8 bg-gradient-to-br from-accent-500 to-accent-600 rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-white text-xs font-semibold">AK</span>
+                <span className="text-white text-xs font-semibold">AS</span>
               </div>
               {isOpen && (
                 <div className="text-left animate-fade-in">
-                  <p className="text-sm font-medium text-primary-900">Alon Koppel</p>
+                  <p className="text-sm font-medium text-primary-900">Alon Sicherman</p>
                   <p className="text-xs text-primary-500">Admin</p>
                 </div>
               )}

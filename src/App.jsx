@@ -1,14 +1,61 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import './index.css'
 import Dashboard from './components/Dashboard'
 import Sidebar from './components/Sidebar'
 import Header from './components/Header'
 import BookingWizard from './components/booking/BookingWizard'
 import CRM from './components/crm/CRM'
+import EquipmentManagement from './components/equipment/EquipmentManagement'
+import { useAuth } from './contexts/AuthContext'
+import { LoginForm } from './components/auth/LoginForm'
+import { Loader2 } from 'lucide-react'
 
 function App() {
   const [activeModule, setActiveModule] = useState('dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  const { isAuthenticated, isLoading } = useAuth()
+
+  // Handle navigation events
+  useEffect(() => {
+    const handleNavigate = (e) => {
+      if (e.detail) {
+        setActiveModule(e.detail)
+      }
+    }
+    window.addEventListener('navigate', handleNavigate)
+    return () => window.removeEventListener('navigate', handleNavigate)
+  }, [])
+
+  // Check mobile and adjust sidebar
+  useEffect(() => {
+    const checkMobile = () => {
+      if (window.innerWidth < 1024) {
+        setSidebarOpen(false)
+      }
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-primary-50">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-8 h-8 animate-spin text-brand-600" />
+          <p className="text-primary-500 text-sm">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-primary-50 flex items-center justify-center p-4">
+        <LoginForm />
+      </div>
+    )
+  }
 
   return (
     <div className="flex h-screen bg-primary-50">
@@ -43,17 +90,7 @@ function App() {
               <p className="text-primary-500 max-w-md text-center">Coming in Phase 4. Quotes, invoices, and QuickBooks sync.</p>
             </div>
           )}
-          {activeModule === 'equipment' && (
-            <div className="flex flex-col items-center justify-center py-20 text-primary-500">
-              <div className="w-20 h-20 bg-primary-100 rounded-2xl flex items-center justify-center mb-6">
-                <svg className="w-10 h-10 text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                </svg>
-              </div>
-              <h2 className="text-xl font-semibold text-primary-900 mb-2">Equipment</h2>
-              <p className="text-primary-500 max-w-md text-center">Coming in Phase 3. Inventory, maintenance, and reservations.</p>
-            </div>
-          )}
+          {activeModule === 'equipment' && <EquipmentManagement />}
           {activeModule === 'marketing' && (
             <div className="flex flex-col items-center justify-center py-20 text-primary-500">
               <div className="w-20 h-20 bg-primary-100 rounded-2xl flex items-center justify-center mb-6">
