@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { 
   Package, Search, Plus, Check, ChevronLeft, ChevronRight,
   Box, Lightbulb, Camera, Wrench, Zap, Film, Grid, Mic, Loader2
@@ -25,7 +25,7 @@ const CATEGORIES = [
 
 export default function EquipmentManagement() {
   const [equipment, setEquipment] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -34,31 +34,53 @@ export default function EquipmentManagement() {
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState(null);
   const [cart, setCart] = useState([]);
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const abortControllerRef = useRef(null);
+  const isLoadingRef = useRef(false);
 
-  useEffect(() => {
-    loadEquipment();
-  }, [page, category]);
-
-  // Debounce search
+  // Debounce search input
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (search !== undefined) {
+      setDebouncedSearch(search);
+      if (search !== debouncedSearch) {
         setPage(1);
-        loadEquipment();
       }
-    }, 300);
+    }, 800); // Longer debounce
     return () => clearTimeout(timer);
   }, [search]);
 
+  // Single effect for all data loading
+  useEffect(() => {
+    // Prevent duplicate requests
+    if (isLoadingRef.current) {
+      abortControllerRef.current?.abort();
+    }
+    
+    loadEquipment();
+    
+    return () => {
+      abortControllerRef.current?.abort();
+    };
+  }, [page, category, debouncedSearch]);
+
   const loadEquipment = async () => {
+    if (isLoadingRef.current) return; // Prevent concurrent requests
+    
+    isLoadingRef.current = true;
     setLoading(true);
     setError(null);
+    
+    // Create new abort controller for this request
+    abortControllerRef.current = new AbortController();
+    
     try {
-      const params = new URLSearchParams({ page, limit: '24' });
+      const params = new URLSearchParams({ page: String(page), limit: '24' });
       if (category !== 'All') params.append('category', category);
-      if (search) params.append('search', search);
+      if (debouncedSearch) params.append('search', debouncedSearch);
       
-      const response = await api.get(`/equipment?${params}`);
+      const response = await api.get(`/equipment?${params}`, {
+        signal: abortControllerRef.current.signal
+      });
       
       if (response.data?.success) {
         setEquipment(response.data.data || []);
@@ -68,9 +90,13 @@ export default function EquipmentManagement() {
         setError('Failed to load equipment');
       }
     } catch (err) {
+      if (err.name === 'AbortError' || err.name === 'CanceledError') {
+        return; // Request was cancelled, don't update state
+      }
       console.error('Equipment load error:', err);
       setError(err.response?.data?.error?.message || 'Failed to load equipment');
     } finally {
+      isLoadingRef.current = false;
       setLoading(false);
     }
   };
