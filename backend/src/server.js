@@ -23,6 +23,7 @@ const contactsRoutes = require('./routes/contacts');
 const companiesRoutes = require('./routes/companies');
 const dealsRoutes = require('./routes/deals');
 const activityRoutes = require('./routes/activity');
+const notificationRoutes = require('./routes/notifications');
 
 // Initialize Express app
 const app = express();
@@ -129,6 +130,7 @@ app.use('/api/contacts', contactsRoutes);
 app.use('/api/companies', companiesRoutes);
 app.use('/api/deals', dealsRoutes);
 app.use('/api/activity', activityRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // TODO: Add more routes
 // app.use('/api/clients', require('./routes/clients'));
@@ -164,10 +166,26 @@ io.on('connection', (socket) => {
     logger.info(`Socket ${socket.id} left channel ${channelId}`);
   });
 
+  // Mark notification as read
+  socket.on('mark_notification_read', async (data) => {
+    try {
+      const Notification = require('./models/Notification');
+      await Notification.markAsRead(data.notificationId, socket.userId);
+      socket.emit('notification_read', { notificationId: data.notificationId });
+    } catch (error) {
+      logger.error('Error marking notification as read:', error);
+    }
+  });
+
   // Handle disconnect
   socket.on('disconnect', () => {
     logger.info(`Client disconnected: ${socket.id}`);
   });
+});
+
+// Function to send notification to user via socket
+app.set('sendNotification', (userId, notification) => {
+  io.to(`user:${userId}`).emit('notification', notification);
 });
 
 // Make io accessible to controllers

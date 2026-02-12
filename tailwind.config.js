@@ -110,7 +110,26 @@ export default {
         'card-hover': '0 8px 30px -12px rgba(0, 0, 0, 0.15)',
         'dropdown': '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
       },
+      spacing: {
+        'safe-top': 'env(safe-area-inset-top)',
+        'safe-bottom': 'env(safe-area-inset-bottom)',
+        'safe-left': 'env(safe-area-inset-left)',
+        'safe-right': 'env(safe-area-inset-right)',
+        '18': '4.5rem',
+        '88': '22rem',
+      },
+      minHeight: {
+        'touch': '44px',
+      },
+      minWidth: {
+        'touch': '44px',
+      },
+      fontSize: {
+        'xs-mobile': ['0.6875rem', { lineHeight: '1rem' }],
+      },
     },
   },
-  plugins: [],
+  plugins: [
+    require('tailwindcss-safe-area'),
+  ],
 }

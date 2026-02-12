@@ -10,6 +10,8 @@ import ClientPortal from './components/client/ClientPortal'
 import CalendarIntegration from './components/calendar/CalendarIntegration'
 import ReportingDashboard from './components/reports/ReportingDashboard'
 import MarketingTools from './components/marketing/MarketingTools'
+import NotificationSettings from './components/settings/NotificationSettings'
+import { MobileBottomNav, MobileMenuDrawer } from './components/MobileBottomNav'
 import { useAuth } from './contexts/AuthContext'
 import { LoginForm } from './components/auth/LoginForm'
 import { Loader2 } from 'lucide-react'
@@ -17,6 +19,7 @@ import { Loader2 } from 'lucide-react'
 function App() {
   const [activeModule, setActiveModule] = useState('dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const { isAuthenticated, isLoading } = useAuth()
   
   // Check if this is a client portal route (public access)
@@ -72,7 +75,7 @@ function App() {
   }
 
   return (
-    <div className="flex h-screen bg-primary-50">
+    <div className="flex h-screen bg-primary-50 pb-16 lg:pb-0">
       {/* Sidebar */}
       <Sidebar 
         activeModule={activeModule} 
@@ -89,15 +92,31 @@ function App() {
           setSidebarOpen={setSidebarOpen}
         />
         
-        <main className="flex-1 overflow-auto p-6 page-transition">
+        <main className="flex-1 overflow-auto p-4 sm:p-6 page-transition">
           {activeModule === 'dashboard' && <Dashboard />}
           {activeModule === 'crm' && <CRM />}
-          {activeModule === 'bookings' && <CalendarIntegration />
+          {activeModule === 'bookings' && <CalendarIntegration />}
           {activeModule === 'invoicing' && <ReportingDashboard />}
           {activeModule === 'equipment' && <EquipmentManagement />}
           {activeModule === 'marketing' && <MarketingTools />}
+          {activeModule === 'settings/notifications' && <NotificationSettings />}
         </main>
       </div>
+
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNav 
+        activeModule={activeModule}
+        setActiveModule={setActiveModule}
+        onMoreClick={() => setMobileMenuOpen(true)}
+      />
+      
+      {/* Mobile Menu Drawer */}
+      <MobileMenuDrawer
+        isOpen={mobileMenuOpen}
+        onClose={() => setMobileMenuOpen(false)}
+        activeModule={activeModule}
+        setActiveModule={setActiveModule}
+      />
     </div>
   )
 }
@@ -109,7 +128,8 @@ function getModuleTitle(module) {
     bookings: 'Bookings & Calendar',
     invoicing: 'Invoicing',
     equipment: 'Equipment',
-    marketing: 'Marketing'
+    marketing: 'Marketing',
+    'settings/notifications': 'Notification Settings'
   }
   return titles[module] || 'Base Super App'
 }
