@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { 
   Package, Grid, Calendar, Search, Plus, Minus, X, 
   Check, ChevronRight, Info, Star, Clock, Camera,
@@ -51,7 +51,7 @@ export default function EquipmentManagement() {
   }, [searchQuery, selectedCategory]);
 
   // Reset page when filters change
-  useEffect(() => {
+  useMemo(() => {
     setCurrentPage(1);
   }, [searchQuery, selectedCategory]);
 
