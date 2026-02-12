@@ -28,6 +28,8 @@ const csvImportRoutes = require('./routes/csvImport');
 const advancedBookingRoutes = require('./routes/advancedBooking');
 const clientManagementRoutes = require('./routes/clientManagement');
 const inventoryAlertRoutes = require('./routes/inventoryAlerts');
+const imageRoutes = require('./routes/images');
+const simpleEquipmentRoutes = require('./routes/simpleEquipment');
 const teamManagementRoutes = require('./routes/teamManagement');
 const projectRoutes = require('./routes/projects');
 const documentRoutes = require('./routes/documents');
@@ -132,7 +134,7 @@ app.get('/health', async (req, res) => {
 
 // API routes
 app.use('/api/auth', authLimiter, authRoutes);
-app.use('/api/equipment', equipmentRoutes);
+app.use('/api/equipment', simpleEquipmentRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/quickbooks', quickbooksRoutes);
 app.use('/api/chat', chatRoutes);
@@ -151,6 +153,7 @@ app.use('/api/documents', documentRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/locations', locationRoutes);
 app.use('/api/branding', brandingRoutes);
+app.use('/api/images', imageRoutes);
 
 // Socket.io connection handling
 io.on('connection', (socket) => {

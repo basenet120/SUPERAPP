@@ -17,6 +17,7 @@ const MarketingTools = lazy(() => import('./components/marketing/MarketingTools'
 const NotificationSettings = lazy(() => import('./components/settings/NotificationSettings'))
 const QuickBooksIntegration = lazy(() => import('./components/quickbooks/QuickBooksIntegration'))
 const ClientPortal = lazy(() => import('./components/client/ClientPortal'))
+const ChatPage = lazy(() => import('./pages/ChatPage'))
 
 // Loading fallback
 const PageLoader = () => (
@@ -114,6 +115,7 @@ function App() {
             {activeModule === 'equipment' && <EquipmentManagement />}
             {activeModule === 'marketing' && <MarketingTools />}
             {activeModule === 'quickbooks' && <QuickBooksIntegration />}
+            {activeModule === 'chat' && <ChatPage />}
             {activeModule === 'settings/notifications' && <NotificationSettings />}
           </Suspense>
         </main>
@@ -146,6 +148,7 @@ function getModuleTitle(module) {
     equipment: 'Equipment',
     marketing: 'Marketing',
     quickbooks: 'QuickBooks',
+    chat: 'Messages',
     'settings/notifications': 'Notification Settings'
   }
   return titles[module] || 'Base Super App'

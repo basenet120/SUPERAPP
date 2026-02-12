@@ -10,13 +10,15 @@ import {
   ChevronRight,
   Building2,
   User,
-  BookOpen
+  BookOpen,
+  MessageCircle
 } from 'lucide-react'
 
 const navItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'crm', label: 'CRM', icon: Users },
   { id: 'bookings', label: 'Bookings', icon: Calendar },
+  { id: 'chat', label: 'Messages', icon: MessageCircle },
   { id: 'invoicing', label: 'Invoicing', icon: Receipt },
   { id: 'equipment', label: 'Equipment', icon: Package },
   { id: 'marketing', label: 'Marketing', icon: Megaphone },

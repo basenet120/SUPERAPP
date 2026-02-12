@@ -2,39 +2,38 @@ const express = require('express');
 const router = express.Router();
 const { authenticate } = require('../middleware/auth');
 const notificationController = require('../controllers/notificationController');
-const { asyncHandler } = require('../utils/errors');
 
 // All routes require authentication
 router.use(authenticate);
 
 // Get notifications
-router.get('/', asyncHandler(notificationController.getNotifications));
+router.get('/', notificationController.getNotifications);
 
 // Get unread count
-router.get('/unread-count', asyncHandler(notificationController.getUnreadCount));
+router.get('/unread-count', notificationController.getUnreadCount);
 
 // Get preferences
-router.get('/preferences', asyncHandler(notificationController.getPreferences));
+router.get('/preferences', notificationController.getPreferences);
 
 // Update preferences
-router.put('/preferences', asyncHandler(notificationController.updatePreferences));
+router.put('/preferences', notificationController.updatePreferences);
 
 // Push notification subscription
-router.post('/subscribe', asyncHandler(notificationController.subscribePush));
-router.post('/unsubscribe', asyncHandler(notificationController.unsubscribePush));
-router.get('/vapid-key', asyncHandler(notificationController.getVapidKey));
-router.post('/test-push', asyncHandler(notificationController.sendTestPush));
+router.post('/subscribe', notificationController.subscribePush);
+router.post('/unsubscribe', notificationController.unsubscribePush);
+router.get('/vapid-key', notificationController.getVapidKey);
+router.post('/test-push', notificationController.sendTestPush);
 
 // Mark as read
-router.put('/:id/read', asyncHandler(notificationController.markAsRead));
+router.put('/:id/read', notificationController.markAsRead);
 
 // Mark all as read
-router.put('/mark-all-read', asyncHandler(notificationController.markAllAsRead));
+router.put('/mark-all-read', notificationController.markAllAsRead);
 
 // Delete notification
-router.delete('/:id', asyncHandler(notificationController.deleteNotification));
+router.delete('/:id', notificationController.deleteNotification);
 
 // Clear all
-router.delete('/', asyncHandler(notificationController.clearAll));
+router.delete('/', notificationController.clearAll);
 
 module.exports = router;

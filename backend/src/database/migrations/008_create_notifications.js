@@ -1,41 +1,5 @@
 exports.up = async function(knex) {
-  // Notifications table
-  await knex.schema.createTable('notifications', table => {
-    table.uuid('id').primary().defaultTo(knex.raw('uuid_generate_v4()'));
-    table.uuid('user_id').references('id').inTable('users').onDelete('CASCADE').index();
-    table.enum('type', [
-      'booking_confirmed',
-      'booking_cancelled',
-      'booking_updated',
-      'payment_received',
-      'payment_failed',
-      'coi_uploaded',
-      'quote_approved',
-      'quote_declined',
-      'equipment_conflict',
-      'mention',
-      'system_alert',
-      'digest_daily',
-      'digest_weekly'
-    ]).notNullable();
-    table.string('title').notNullable();
-    table.text('message').notNullable();
-    table.jsonb('data').defaultTo('{}'); // URL, entity IDs, etc.
-    table.enum('priority', ['low', 'normal', 'high', 'urgent']).defaultTo('normal');
-    table.boolean('read').defaultTo(false);
-    table.timestamp('read_at');
-    table.boolean('email_sent').defaultTo(false);
-    table.timestamp('email_sent_at');
-    table.boolean('push_sent').defaultTo(false);
-    table.timestamp('push_sent_at');
-    table.timestamps(true, true);
-    
-    // Indexes
-    table.index(['user_id', 'read', 'created_at']);
-    table.index(['type', 'created_at']);
-  });
-
-  // Notification preferences table
+  // Notification preferences table (new)
   await knex.schema.createTable('notification_preferences', table => {
     table.uuid('id').primary().defaultTo(knex.raw('uuid_generate_v4()'));
     table.uuid('user_id').references('id').inTable('users').onDelete('CASCADE').unique();
@@ -78,7 +42,7 @@ exports.up = async function(knex) {
     
     // Digest settings
     table.boolean('digest_daily_enabled').defaultTo(true);
-    table.string('digest_daily_time').defaultTo('09:00'); // 24-hour format
+    table.string('digest_daily_time').defaultTo('09:00');
     table.boolean('digest_weekly_enabled').defaultTo(true);
     table.enum('digest_weekly_day', ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']).defaultTo('monday');
     table.string('digest_weekly_time').defaultTo('09:00');
@@ -97,7 +61,7 @@ exports.up = async function(knex) {
     table.uuid('id').primary().defaultTo(knex.raw('uuid_generate_v4()'));
     table.uuid('user_id').references('id').inTable('users').onDelete('CASCADE');
     table.text('endpoint').notNullable();
-    table.jsonb('keys').notNullable(); // p256dh and auth keys
+    table.jsonb('keys').notNullable();
     table.string('user_agent');
     table.timestamp('last_used');
     table.timestamps(true, true);
@@ -109,5 +73,4 @@ exports.up = async function(knex) {
 exports.down = async function(knex) {
   await knex.schema.dropTableIfExists('push_subscriptions');
   await knex.schema.dropTableIfExists('notification_preferences');
-  await knex.schema.dropTableIfExists('notifications');
 };

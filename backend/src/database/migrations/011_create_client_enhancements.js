@@ -1,12 +1,13 @@
 exports.up = async function(knex) {
-  // Add tier fields to clients table
-  await knex.schema.table('clients', table => {
-    table.enum('tier', ['bronze', 'silver', 'gold', 'platinum']).defaultTo('bronze');
-    table.decimal('lifetime_spend', 12, 2).defaultTo(0);
-    table.integer('total_bookings').defaultTo(0);
-    table.timestamp('tier_assigned_at');
-    table.jsonb('tier_benefits').defaultTo('{}');
-  });
+  // Add tier fields to clients table (if not already present from 003_create_bookings)
+  // Use raw SQL with IF NOT EXISTS to avoid errors
+  await knex.raw(`
+    ALTER TABLE clients 
+    ADD COLUMN IF NOT EXISTS lifetime_spend decimal(12, 2) DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS total_bookings integer DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS tier_assigned_at timestamptz,
+    ADD COLUMN IF NOT EXISTS tier_benefits jsonb DEFAULT '{}';
+  `);
 
   // Client Tags
   await knex.schema.createTable('client_tags', table => {
@@ -153,11 +154,12 @@ exports.down = async function(knex) {
   await knex.schema.dropTableIfExists('client_tag_relations');
   await knex.schema.dropTableIfExists('client_tags');
   
-  await knex.schema.table('clients', table => {
-    table.dropColumn('tier');
-    table.dropColumn('lifetime_spend');
-    table.dropColumn('total_bookings');
-    table.dropColumn('tier_assigned_at');
-    table.dropColumn('tier_benefits');
-  });
+  // Drop columns if they exist
+  await knex.raw(`
+    ALTER TABLE clients 
+    DROP COLUMN IF EXISTS lifetime_spend,
+    DROP COLUMN IF EXISTS total_bookings,
+    DROP COLUMN IF EXISTS tier_assigned_at,
+    DROP COLUMN IF EXISTS tier_benefits;
+  `);
 };

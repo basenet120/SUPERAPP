@@ -5,7 +5,8 @@ import {
   Receipt, 
   Package, 
   Megaphone,
-  MoreHorizontal
+  MoreHorizontal,
+  MessageCircle
 } from 'lucide-react';
 
 const navItems = [
@@ -66,6 +67,7 @@ export function MobileBottomNav({ activeModule, setActiveModule, onMoreClick }) 
 export function MobileMenuDrawer({ isOpen, onClose, activeModule, setActiveModule, onNavigate }) {
   const moreItems = [
     { id: 'invoicing', label: 'Invoicing', icon: Receipt },
+    { id: 'chat', label: 'Messages', icon: MessageCircle },
     { id: 'marketing', label: 'Marketing', icon: Megaphone },
   ];
 

@@ -1,13 +1,14 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { 
   Package, Grid, Calendar, Search, Plus, Minus, X, 
   Check, ChevronRight, Info, Star, Clock, Camera,
   Mic, Lightbulb, Zap, Film, Box, Wrench, ArrowLeft,
-  ChevronLeft, ChevronRight as ChevronRightIcon, Upload, FileText
+  ChevronLeft, ChevronRight as ChevronRightIcon, Upload, FileText, Loader2
 } from 'lucide-react';
 import CSVImportWizard from './CSVImportWizard';
 import ImportJobsList from './ImportJobsList';
-import { EQUIPMENT_DATA, EQUIPMENT_CATEGORIES, getDayRate } from './kmRentalEquipment';
+import { EQUIPMENT_CATEGORIES } from './kmRentalEquipment';
+import api from '../../services/api';
 import { EQUIPMENT_PACKAGES, EQUIPMENT_SPECS, getDefaultSpecs, generateAvailabilityData } from './equipmentPackages';
 import { Badge } from '../ui/Badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/Dialog';
@@ -30,37 +31,57 @@ const CATEGORY_ICONS = {
 };
 
 export default function EquipmentManagement() {
-  const [activeView, setActiveView] = useState('browse'); // browse, packages, calendar, detail, import, import-jobs
+  const [activeView, setActiveView] = useState('browse');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedEquipment, setSelectedEquipment] = useState(null);
-  const [selectedPackage, setSelectedPackage] = useState(null);
   const [cart, setCart] = useState([]);
-  const [currentMonth, setCurrentMonth] = useState(new Date());
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 24; // Show 24 items per page
+  const [equipment, setEquipment] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [pagination, setPagination] = useState({ page: 1, limit: 24, total: 0, pages: 0 });
+  const itemsPerPage = 24;
 
-  // Filter equipment
-  const filteredEquipment = useMemo(() => {
-    return EQUIPMENT_DATA.filter(item => {
-      const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          item.description.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesCategory = selectedCategory === 'All' || item.category === selectedCategory;
-      return matchesSearch && matchesCategory;
-    });
-  }, [searchQuery, selectedCategory]);
+  // Fetch equipment from API
+  useEffect(() => {
+    fetchEquipment();
+  }, [currentPage, selectedCategory, searchQuery]);
 
-  // Reset page when filters change
-  useMemo(() => {
-    setCurrentPage(1);
-  }, [searchQuery, selectedCategory]);
+  const fetchEquipment = async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({
+        page: currentPage,
+        limit: itemsPerPage,
+      });
 
-  // Pagination
-  const totalPages = Math.ceil(filteredEquipment.length / itemsPerPage);
-  const paginatedEquipment = useMemo(() => {
-    const start = (currentPage - 1) * itemsPerPage;
-    return filteredEquipment.slice(start, start + itemsPerPage);
-  }, [filteredEquipment, currentPage]);
+      if (selectedCategory !== 'All') {
+        params.append('category', selectedCategory);
+      }
+
+      if (searchQuery) {
+        params.append('search', searchQuery);
+      }
+
+      const response = await api.get(`/equipment?${params}`);
+
+      if (response.data.success) {
+        setEquipment(response.data.data);
+        setPagination(response.data.pagination);
+      }
+    } catch (err) {
+      console.error('Failed to fetch equipment:', err);
+      setError('Failed to load equipment. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Helper to get day rate
+  const getDayRate = (item) => {
+    return item.base_price || item.selling_price || item.km_price * 2.5 || 0;
+  };
 
   const addToCart = (equipmentId, quantity = 1) => {
     const existingItem = cart.find(item => item.id === equipmentId);
@@ -81,7 +102,7 @@ export default function EquipmentManagement() {
     });
   };
 
-  const getEquipmentById = (id) => EQUIPMENT_DATA.find(e => e.id === id);
+  const getEquipmentById = (id) => equipment.find(e => e.id === id);
 
   const renderBrowseView = () => (
     <div className="space-y-6">
@@ -89,7 +110,9 @@ export default function EquipmentManagement() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-primary-900">Equipment Browser</h2>
-          <p className="text-primary-500 mt-1">Browse our complete inventory of in-house and partner equipment</p>
+          <p className="text-primary-500 mt-1">
+            {loading ? 'Loading...' : `${pagination.total} items available`}
+          </p>
         </div>
         <div className="flex items-center gap-3">
           <div className="relative">
@@ -98,7 +121,7 @@ export default function EquipmentManagement() {
               type="text"
               placeholder="Search equipment..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
               className="input-field pl-10 w-64"
             />
           </div>
@@ -136,9 +159,25 @@ export default function EquipmentManagement() {
         })}
       </div>
 
+      {/* Error Message */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+          {error}
+        </div>
+      )}
+
+      {/* Loading State */}
+      {loading && (
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="w-8 h-8 text-primary-600 animate-spin" />
+          <span className="ml-3 text-primary-600">Loading equipment...</span>
+        </div>
+      )}
+
       {/* Equipment Grid */}
+      {!loading && (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-        {paginatedEquipment.map(equipment => {
+        {equipment.map(equipment => {
           const dayRate = getDayRate(equipment);
           const inCart = cart.find(item => item.id === equipment.id);
           const Icon = CATEGORY_ICONS[equipment.category] || Box;
@@ -209,9 +248,10 @@ export default function EquipmentManagement() {
           );
         })}
       </div>
+      )}
 
       {/* Pagination */}
-      {totalPages > 1 && (
+      {pagination.pages > 1 && (
         <div className="flex items-center justify-center gap-2 mt-8">
           <button
             onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
@@ -221,11 +261,11 @@ export default function EquipmentManagement() {
             Previous
           </button>
           <span className="text-sm text-primary-600">
-            Page {currentPage} of {totalPages} ({filteredEquipment.length} items)
+            Page {currentPage} of {pagination.pages} ({pagination.total} items)
           </span>
           <button
-            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage(p => Math.min(pagination.pages, p + 1))}
+            disabled={currentPage === pagination.pages}
             className="px-4 py-2 rounded-lg border border-primary-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary-50"
           >
             Next
@@ -233,7 +273,7 @@ export default function EquipmentManagement() {
         </div>
       )}
 
-      {filteredEquipment.length === 0 && (
+      {!loading && equipment.length === 0 && (
         <div className="text-center py-20">
           <div className="w-20 h-20 bg-primary-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <Package className="w-10 h-10 text-primary-400" strokeWidth={1.5} />

@@ -1,5 +1,5 @@
 const db = require('../config/database');
-const logger = require('./logger');
+const logger = require('../utils/logger');
 const EquipmentModel = require('../models/Equipment');
 const CSVImportJob = require('../models/CSVImportJob');
 

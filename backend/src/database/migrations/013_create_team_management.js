@@ -54,14 +54,14 @@ exports.up = async function(knex) {
   });
 
   // Employee-Time Tracking (prep for payroll)
-  await knex.schema.createTable('time_entries', table => {
+  await knex.schema.createTable('employee_time_entries', table => {
     table.uuid('id').primary().defaultTo(knex.raw('uuid_generate_v4()'));
     table.uuid('employee_id').references('id').inTable('employee_profiles').onDelete('CASCADE').notNullable();
     
     // Time tracking
     table.timestamp('clock_in').notNullable();
     table.timestamp('clock_out');
-    table.interval('duration');
+    table.specificType('duration', 'interval');
     
     // Categorization
     table.enum('type', ['regular', 'overtime', 'break', 'training', 'meeting', 'travel']).defaultTo('regular');
@@ -180,7 +180,7 @@ exports.down = async function(knex) {
   await knex.schema.dropTableIfExists('employee_documents');
   await knex.schema.dropTableIfExists('employee_availability');
   await knex.schema.dropTableIfExists('booking_assignments');
-  await knex.schema.dropTableIfExists('time_entries');
+  await knex.schema.dropTableIfExists('employee_time_entries');
   await knex.schema.dropTableIfExists('skill_categories');
   await knex.schema.dropTableIfExists('employee_profiles');
 };
