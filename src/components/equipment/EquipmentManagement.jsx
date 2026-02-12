@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import CSVImportWizard from './CSVImportWizard';
 import ImportJobsList from './ImportJobsList';
-import { EQUIPMENT_DATA, EQUIPMENT_CATEGORIES, getDayRate } from '../booking/equipmentData';
+import { EQUIPMENT_DATA, EQUIPMENT_CATEGORIES } from './kmRentalEquipment';
 import { EQUIPMENT_PACKAGES, EQUIPMENT_SPECS, getDefaultSpecs, generateAvailabilityData } from './equipmentPackages';
 import { Badge } from '../ui/Badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/Dialog';
