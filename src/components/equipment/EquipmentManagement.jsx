@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   Package, Search, Plus, Check, ChevronLeft, ChevronRight,
   Box, Lightbulb, Camera, Wrench, Zap, Film, Grid, Mic, Loader2
 } from 'lucide-react';
-import api from '../../services/api';
+import axios from 'axios';
 
 const CATEGORY_ICONS = {
   'Grip & Support': Box,
@@ -23,6 +23,8 @@ const CATEGORIES = [
   'Power', 'Cameras', 'Production', 'Motion', 'Sound', 'Styling'
 ];
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
+
 export default function EquipmentManagement() {
   const [equipment, setEquipment] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -34,79 +36,73 @@ export default function EquipmentManagement() {
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState(null);
   const [cart, setCart] = useState([]);
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  const abortControllerRef = useRef(null);
-  const isLoadingRef = useRef(false);
-
-  // Debounce search input
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(search);
-      if (search !== debouncedSearch) {
-        setPage(1);
-      }
-    }, 800); // Longer debounce
-    return () => clearTimeout(timer);
-  }, [search]);
-
-  // Single effect for all data loading
-  useEffect(() => {
-    // Prevent duplicate requests
-    if (isLoadingRef.current) {
-      abortControllerRef.current?.abort();
+  
+  // Create axios instance with auth
+  const api = axios.create({
+    baseURL: API_URL,
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem('accessToken') || ''}`
     }
-    
-    loadEquipment();
-    
-    return () => {
-      abortControllerRef.current?.abort();
-    };
-  }, [page, category, debouncedSearch]);
+  });
 
-  const loadEquipment = async () => {
-    if (isLoadingRef.current) return; // Prevent concurrent requests
-    
-    isLoadingRef.current = true;
+  const loadEquipment = useCallback(async () => {
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      setError('Not logged in');
+      return;
+    }
+
     setLoading(true);
     setError(null);
     
-    // Create new abort controller for this request
-    abortControllerRef.current = new AbortController();
-    
     try {
-      const params = new URLSearchParams({ page: String(page), limit: '24' });
+      const params = new URLSearchParams();
+      params.append('page', String(page));
+      params.append('limit', '24');
       if (category !== 'All') params.append('category', category);
-      if (debouncedSearch) params.append('search', debouncedSearch);
+      if (search) params.append('search', search);
       
-      const response = await api.get(`/equipment?${params}`, {
-        signal: abortControllerRef.current.signal
-      });
+      console.log('Fetching:', `${API_URL}/equipment?${params}`);
+      
+      const response = await api.get(`/equipment?${params}`);
+      
+      console.log('Response:', response.data);
       
       if (response.data?.success) {
         setEquipment(response.data.data || []);
         setTotal(response.data.pagination?.total || 0);
         setTotalPages(response.data.pagination?.pages || 1);
       } else {
-        setError('Failed to load equipment');
+        setError(response.data?.error?.message || 'Failed to load equipment');
       }
     } catch (err) {
-      if (err.name === 'AbortError' || err.name === 'CanceledError') {
-        return; // Request was cancelled, don't update state
+      console.error('Load error:', err);
+      const msg = err.response?.data?.error?.message || err.message || 'Failed to load';
+      setError(msg);
+      
+      // If unauthorized, clear token
+      if (err.response?.status === 401) {
+        localStorage.removeItem('accessToken');
       }
-      console.error('Equipment load error:', err);
-      setError(err.response?.data?.error?.message || 'Failed to load equipment');
     } finally {
-      isLoadingRef.current = false;
       setLoading(false);
     }
-  };
+  }, [page, category, search]);
+
+  // Load on mount and when dependencies change
+  useEffect(() => {
+    loadEquipment();
+  }, [loadEquipment]);
 
   const getDayRate = (item) => {
-    return item?.base_price || item?.selling_price || (item?.km_price ? item.km_price * 2.5 : 0) || 0;
+    if (!item) return 0;
+    return item.base_price || item.selling_price || (item.km_price ? parseFloat(item.km_price) * 2.5 : 0) || 0;
   };
 
   const addToCart = (e, item) => {
-    e.stopPropagation();
+    e?.stopPropagation();
+    if (!item) return;
     const existing = cart.find(c => c.id === item.id);
     if (existing) {
       setCart(cart.map(c => c.id === item.id ? { ...c, qty: c.qty + 1 } : c));
@@ -132,7 +128,7 @@ export default function EquipmentManagement() {
             type="text"
             placeholder="Search..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
             className="pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm w-full md:w-64 focus:outline-none focus:ring-2 focus:ring-slate-500"
           />
         </div>
@@ -159,6 +155,12 @@ export default function EquipmentManagement() {
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
           {error}
+          <button 
+            onClick={loadEquipment}
+            className="ml-2 underline hover:no-underline"
+          >
+            Retry
+          </button>
         </div>
       )}
 
@@ -232,7 +234,7 @@ export default function EquipmentManagement() {
           </div>
 
           {/* Empty */}
-          {equipment.length === 0 && !error && (
+          {equipment.length === 0 && !error && !loading && (
             <div className="text-center py-20 text-slate-400">
               <Package className="w-12 h-12 mx-auto mb-3 opacity-50" />
               <p>No equipment found</p>
@@ -281,7 +283,6 @@ export default function EquipmentManagement() {
                   <h3 className="text-xl font-bold text-slate-900">{selected.name}</h3>
                 </div>
                 <button onClick={() => setSelected(null)} className="p-2 hover:bg-slate-100 rounded-lg">
-                  <span className="sr-only">Close</span>
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
               </div>
