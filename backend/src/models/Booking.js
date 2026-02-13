@@ -240,8 +240,12 @@ class BookingModel {
 
     const offset = (pagination.page - 1) * pagination.limit;
     
+    // Get total count (clone query and remove orderBy for counting)
+    const countQuery = query.clone();
+    countQuery.clear('order');
+    
     const [countResult, rows] = await Promise.all([
-      query.clone().count('* as count').first(),
+      countQuery.count('* as count').first(),
       query
         .select(
           'bookings.*',

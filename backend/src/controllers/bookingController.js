@@ -1,3 +1,4 @@
+const db = require('../config/database');
 const BookingModel = require('../models/Booking');
 const EquipmentModel = require('../models/Equipment');
 const { logAudit } = require('../utils/audit');
