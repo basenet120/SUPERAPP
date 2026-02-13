@@ -47,7 +47,7 @@ function QuickBooksIntegration() {
 
   const handleConnect = () => {
     // Redirect to QuickBooks OAuth
-    window.location.href = `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/quickbooks/auth`;
+    window.location.href = `${import.meta.env.VITE_API_URL || 'http://localhost:5001/api'}/quickbooks/auth`;
   };
 
   const handleSync = async () => {
