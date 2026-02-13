@@ -1,15 +1,19 @@
 import { Menu, Search, ChevronDown, Loader2 } from 'lucide-react'
 import { useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
-import { useRealtimeNotifications } from '../hooks/useSocket'
+import { useNotifications, useNotificationCount } from '../hooks/useQueries'
 import { NotificationBell } from './notifications/NotificationBell'
 
 function Header({ title, sidebarOpen, setSidebarOpen }) {
   const [showUserMenu, setShowUserMenu] = useState(false)
   const { user, logout } = useAuth()
   
-  // Use real-time notifications when we have the user
-  const { unreadCount, notifications } = useRealtimeNotifications(user?.id)
+  // Use HTTP-based notifications (more reliable than WebSocket)
+  const { data: notificationsData } = useNotifications({ limit: 10 })
+  const { data: unreadCountData } = useNotificationCount()
+  
+  const notifications = notificationsData?.notifications || []
+  const unreadCount = unreadCountData || 0
 
   const handleLogout = async () => {
     await logout()

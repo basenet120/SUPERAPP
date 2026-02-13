@@ -210,5 +210,17 @@ export const activityAPI = {
   markAllAsRead: () => api.post('/activity/read-all'),
 };
 
+// Notifications API (bell icon)
+export const notificationAPI = {
+  list: (params) => api.get('/notifications', { params }),
+  getUnreadCount: () => api.get('/notifications/unread-count'),
+  markAsRead: (id) => api.put(`/notifications/${id}/read`),
+  markAllAsRead: () => api.put('/notifications/mark-all-read'),
+  delete: (id) => api.delete(`/notifications/${id}`),
+  clearAll: () => api.delete('/notifications'),
+  getPreferences: () => api.get('/notifications/preferences'),
+  updatePreferences: (data) => api.put('/notifications/preferences', data),
+};
+
 export { api };
 export default api;

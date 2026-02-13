@@ -7,7 +7,8 @@ import {
   companiesAPI, 
   dealsAPI, 
   chatAPI,
-  activityAPI 
+  activityAPI,
+  notificationAPI
 } from '../services/api';
 import { toast } from 'sonner';
 
@@ -482,6 +483,75 @@ export const useSignContract = () => {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['bookings', variables.bookingId] });
       toast.success('Contract signed successfully');
+    },
+  });
+};
+
+// Notification Hooks (for bell icon)
+export const useNotifications = (params = { limit: 10 }) => {
+  return useQuery({
+    queryKey: ['notifications', params],
+    queryFn: async () => {
+      const response = await notificationAPI.list(params);
+      return response.data;
+    },
+    ...defaultQueryOptions,
+  });
+};
+
+export const useNotificationCount = () => {
+  return useQuery({
+    queryKey: ['notifications', 'count'],
+    queryFn: async () => {
+      const response = await notificationAPI.getUnreadCount();
+      return response.data.count;
+    },
+    ...defaultQueryOptions,
+  });
+};
+
+export const useMarkNotificationRead = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (id) => notificationAPI.markAsRead(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    },
+  });
+};
+
+export const useMarkAllNotificationsRead = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: () => notificationAPI.markAllAsRead(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      toast.success('All notifications marked as read');
+    },
+  });
+};
+
+export const useDeleteNotification = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (id) => notificationAPI.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    },
+  });
+};
+
+export const useClearAllNotifications = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: () => notificationAPI.clearAll(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      toast.success('All notifications cleared');
     },
   });
 };
