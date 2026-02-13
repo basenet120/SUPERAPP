@@ -20,6 +20,10 @@ export const useAuthUser = () => {
       return response.data.data;
     },
     retry: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchInterval: false,
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 };
 
@@ -63,6 +67,9 @@ export const useDashboardStats = () => {
       const response = await bookingAPI.getDashboardStats();
       return response.data.data;
     },
+    retry: 1,
+    refetchOnWindowFocus: false,
+    staleTime: 1000 * 60 * 2, // 2 minutes
   });
 };
 
@@ -73,6 +80,9 @@ export const useRecentActivity = (limit = 10) => {
       const response = await activityAPI.getRecent({ limit });
       return response.data.data;
     },
+    retry: 1,
+    refetchOnWindowFocus: false,
+    staleTime: 1000 * 60 * 2,
   });
 };
 
