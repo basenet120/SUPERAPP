@@ -68,8 +68,8 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
-// Rate limiting
-const limiter = rateLimit({
+// Rate limiting - DISABLED for development
+const limiter = config.env === 'production' ? rateLimit({
   windowMs: config.rateLimit.windowMs,
   max: config.rateLimit.max,
   message: {
@@ -81,7 +81,7 @@ const limiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false
-});
+}) : (req, res, next) => next();
 app.use(limiter);
 
 // Stricter rate limit for auth endpoints

@@ -11,6 +11,15 @@ import {
 } from '../services/api';
 import { toast } from 'sonner';
 
+// Default query options to prevent aggressive refetching
+const defaultQueryOptions = {
+  retry: 1,
+  retryDelay: 2000,
+  refetchOnWindowFocus: false,
+  refetchOnReconnect: false,
+  staleTime: 1000 * 60 * 2, // 2 minutes
+};
+
 // Auth Hooks
 export const useAuthUser = () => {
   return useQuery({
@@ -67,9 +76,7 @@ export const useDashboardStats = () => {
       const response = await bookingAPI.getDashboardStats();
       return response.data.data;
     },
-    retry: 1,
-    refetchOnWindowFocus: false,
-    staleTime: 1000 * 60 * 2, // 2 minutes
+    ...defaultQueryOptions,
   });
 };
 
@@ -80,9 +87,7 @@ export const useRecentActivity = (limit = 10) => {
       const response = await activityAPI.getRecent({ limit });
       return response.data.data;
     },
-    retry: 1,
-    refetchOnWindowFocus: false,
-    staleTime: 1000 * 60 * 2,
+    ...defaultQueryOptions,
   });
 };
 
@@ -94,6 +99,7 @@ export const useEquipment = (params = {}) => {
       const response = await equipmentAPI.list(params);
       return response.data.data;
     },
+    ...defaultQueryOptions,
   });
 };
 
@@ -105,6 +111,7 @@ export const useEquipmentById = (id) => {
       return response.data.data;
     },
     enabled: !!id,
+    ...defaultQueryOptions,
   });
 };
 
@@ -115,6 +122,7 @@ export const useEquipmentCategories = () => {
       const response = await equipmentAPI.getCategories();
       return response.data.data;
     },
+    ...defaultQueryOptions,
   });
 };
 
@@ -166,6 +174,7 @@ export const useCheckEquipmentAvailability = (id, startDate, endDate) => {
       return response.data.data;
     },
     enabled: !!id && !!startDate && !!endDate,
+    ...defaultQueryOptions,
   });
 };
 
@@ -177,6 +186,7 @@ export const useBookings = (params = {}) => {
       const response = await bookingAPI.list(params);
       return response.data.data;
     },
+    ...defaultQueryOptions,
   });
 };
 
@@ -188,6 +198,7 @@ export const useBookingById = (id) => {
       return response.data.data;
     },
     enabled: !!id,
+    ...defaultQueryOptions,
   });
 };
 
@@ -260,6 +271,7 @@ export const useContacts = (params = {}) => {
       const response = await contactsAPI.list(params);
       return response.data.data;
     },
+    ...defaultQueryOptions,
   });
 };
 
@@ -271,6 +283,7 @@ export const useContactById = (id) => {
       return response.data.data;
     },
     enabled: !!id,
+    ...defaultQueryOptions,
   });
 };
 
@@ -323,6 +336,7 @@ export const useCompanies = (params = {}) => {
       const response = await companiesAPI.list(params);
       return response.data.data;
     },
+    ...defaultQueryOptions,
   });
 };
 
@@ -370,6 +384,7 @@ export const useDeals = (params = {}) => {
       const response = await dealsAPI.list(params);
       return response.data.data;
     },
+    ...defaultQueryOptions,
   });
 };
 
@@ -380,6 +395,7 @@ export const usePipeline = () => {
       const response = await dealsAPI.getPipeline();
       return response.data.data;
     },
+    ...defaultQueryOptions,
   });
 };
 
@@ -416,6 +432,7 @@ export const useChatChannels = () => {
       const response = await chatAPI.getChannels();
       return response.data.data;
     },
+    ...defaultQueryOptions,
   });
 };
 
@@ -427,6 +444,7 @@ export const useChatMessages = (channelId) => {
       return response.data.data;
     },
     enabled: !!channelId,
+    ...defaultQueryOptions,
   });
 };
 
