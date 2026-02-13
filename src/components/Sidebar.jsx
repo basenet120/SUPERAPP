@@ -11,7 +11,8 @@ import {
   Building2,
   User,
   BookOpen,
-  MessageCircle
+  MessageCircle,
+  FileText
 } from 'lucide-react'
 
 const navItems = [
@@ -19,6 +20,7 @@ const navItems = [
   { id: 'crm', label: 'CRM', icon: Users },
   { id: 'bookings', label: 'Bookings', icon: Calendar },
   { id: 'chat', label: 'Messages', icon: MessageCircle },
+  { id: 'documents', label: 'Documents', icon: FileText },
   { id: 'invoicing', label: 'Invoicing', icon: Receipt },
   { id: 'equipment', label: 'Equipment', icon: Package },
   { id: 'marketing', label: 'Marketing', icon: Megaphone },

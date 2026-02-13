@@ -6,7 +6,8 @@ import {
   Package, 
   Megaphone,
   MoreHorizontal,
-  MessageCircle
+  MessageCircle,
+  FileText
 } from 'lucide-react';
 
 const navItems = [
@@ -68,6 +69,7 @@ export function MobileMenuDrawer({ isOpen, onClose, activeModule, setActiveModul
   const moreItems = [
     { id: 'invoicing', label: 'Invoicing', icon: Receipt },
     { id: 'chat', label: 'Messages', icon: MessageCircle },
+    { id: 'documents', label: 'Documents', icon: FileText },
     { id: 'marketing', label: 'Marketing', icon: Megaphone },
   ];
 
