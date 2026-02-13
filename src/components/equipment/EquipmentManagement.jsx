@@ -37,19 +37,10 @@ export default function EquipmentManagement() {
   const [selected, setSelected] = useState(null);
   const [cart, setCart] = useState([]);
   
-  // Create axios instance with auth
-  const api = axios.create({
-    baseURL: API_URL,
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${localStorage.getItem('accessToken') || ''}`
-    }
-  });
-
   const loadEquipment = useCallback(async () => {
     const token = localStorage.getItem('accessToken');
     if (!token) {
-      setError('Not logged in');
+      setError('Not logged in - please refresh the page');
       return;
     }
 
@@ -63,9 +54,13 @@ export default function EquipmentManagement() {
       if (category !== 'All') params.append('category', category);
       if (search) params.append('search', search);
       
-      console.log('Fetching:', `${API_URL}/equipment?${params}`);
+      console.log('Fetching with token:', token.substring(0, 20) + '...');
       
-      const response = await api.get(`/equipment?${params}`);
+      const response = await axios.get(`${API_URL}/equipment?${params}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       
       console.log('Response:', response.data);
       
