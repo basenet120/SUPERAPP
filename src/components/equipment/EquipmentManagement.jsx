@@ -1,9 +1,10 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { 
   Package, Search, Plus, Check, ChevronLeft, ChevronRight,
   Box, Lightbulb, Camera, Wrench, Zap, Film, Grid, Mic, Loader2
 } from 'lucide-react';
 import axios from 'axios';
+import { useAuth } from '../../contexts/AuthContext';
 
 const CATEGORY_ICONS = {
   'Grip & Support': Box,
@@ -26,6 +27,7 @@ const CATEGORIES = [
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
 
 export default function EquipmentManagement() {
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const [equipment, setEquipment] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -38,9 +40,17 @@ export default function EquipmentManagement() {
   const [cart, setCart] = useState([]);
   
   const loadEquipment = useCallback(async () => {
+    // Wait for auth to be ready
+    if (authLoading) return;
+    
+    if (!isAuthenticated) {
+      setError('Please log in to view equipment');
+      return;
+    }
+
     const token = localStorage.getItem('accessToken');
     if (!token) {
-      setError('Not logged in - please refresh the page');
+      setError('Session expired - please log in again');
       return;
     }
 
@@ -54,15 +64,11 @@ export default function EquipmentManagement() {
       if (category !== 'All') params.append('category', category);
       if (search) params.append('search', search);
       
-      console.log('Fetching with token:', token.substring(0, 20) + '...');
-      
       const response = await axios.get(`${API_URL}/equipment?${params}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
-      
-      console.log('Response:', response.data);
       
       if (response.data?.success) {
         setEquipment(response.data.data || []);
@@ -76,14 +82,14 @@ export default function EquipmentManagement() {
       const msg = err.response?.data?.error?.message || err.message || 'Failed to load';
       setError(msg);
       
-      // If unauthorized, clear token
       if (err.response?.status === 401) {
         localStorage.removeItem('accessToken');
+        setError('Session expired - please log in again');
       }
     } finally {
       setLoading(false);
     }
-  }, [page, category, search]);
+  }, [page, category, search, isAuthenticated, authLoading]);
 
   // Load on mount and when dependencies change
   useEffect(() => {
@@ -148,14 +154,24 @@ export default function EquipmentManagement() {
 
       {/* Error */}
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-          {error}
-          <button 
-            onClick={loadEquipment}
-            className="ml-2 underline hover:no-underline"
-          >
-            Retry
-          </button>
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-4 rounded-lg">
+          <p className="font-medium">{error}</p>
+          <div className="mt-2 flex gap-2">
+            <button 
+              onClick={loadEquipment}
+              className="text-sm underline hover:no-underline"
+            >
+              Retry
+            </button>
+            {!isAuthenticated && (
+              <button 
+                onClick={() => window.location.reload()}
+                className="text-sm bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
+              >
+                Log In
+              </button>
+            )}
+          </div>
         </div>
       )}
 
