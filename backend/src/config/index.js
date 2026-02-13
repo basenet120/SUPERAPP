@@ -72,8 +72,9 @@ module.exports = {
   },
 
   rateLimit: {
-    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS, 10) || 15 * 60 * 1000, // 15 minutes
-    max: parseInt(process.env.RATE_LIMIT_MAX, 10) || 100
+    // Much higher limits for development
+    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS, 10) || (process.env.NODE_ENV === 'production' ? 15 * 60 * 1000 : 60 * 1000), // 15 min prod, 1 min dev
+    max: parseInt(process.env.RATE_LIMIT_MAX, 10) || (process.env.NODE_ENV === 'production' ? 100 : 10000) // 100 prod, 10k dev
   },
 
   logging: {
